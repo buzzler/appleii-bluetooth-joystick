@@ -1,118 +1,119 @@
-> [!WARNING]
-> I'm not really a hardware guy, so there might be stupid stuff here. I assume no liability for you using this with your Apple II. Damage could occur both to it and your ESP32 if I got anything wrong or if you wire it wrong. Build one at your own risk.
-> Also, this was built for my Apple IIGS and Laser 128.  They use 9 pin DE9 connectors. You'll have to figure out how to do something different if you have the 15 pin connector.
+> [!NOTE]
+> 영어 원문은 [README.en.md](README.en.md)를 참고하세요.
+>
+> 이 저장소는 [kirbyfrugia/appleii-bluetooth-joystick](https://github.com/kirbyfrugia/appleii-bluetooth-joystick)을 포크한 것입니다.
 
 ---
 
-![Breadboard version](images/appleii-bluetooth-joystick.jpeg)
+![브레드보드 버전](images/appleii-bluetooth-joystick.jpeg)
 
 ---
 
-# Purpose
+# 목적
 
-My old school analog joystick isn't great so I wanted to buy a "new" one. But I discovered that even crappy period correct ones are like $50 on ebay. I'm cheap and I also have a bunch of modern gamepads around. So I thought, why not build something to allow those modern gamepads to work with my Apple IIGS and my Laser 128?
+쓰던 옛날 아날로그 조이스틱이 별로 좋지 않아서 "새것"을 사려고 했습니다. 그런데 시대에 맞는 그저 그런 제품도 ebay에서 50달러 정도 한다는 걸 알게 되었습니다. 저는 짠돌이이고, 또 주변에 현대식 게임패드가 잔뜩 있습니다. 그래서 생각했죠. 그 현대식 게임패드들을 Apple IIGS와 Laser 128에서 쓰게 만들면 어떨까?
 
-So this let's you use a modern bluetooth gamepad on an Apple II. I'll probably still buy a joystick, but this was a fun project anyway.
+그렇게 해서 만든 것이 이 프로젝트입니다. 현대식 블루투스 게임패드를 Apple II에서 사용할 수 있게 해 줍니다. 어차피 조이스틱은 결국 살 것 같지만, 만드는 재미가 쏠쏠한 프로젝트였습니다.
 
-If you do anything with electronics then you probably have a hoard of parts on hand. This project is cheap in theory if you already have common parts like breadboards, resistors, diodes, etc. Most of the components are cheap, but they only come in bulk so you'll end up paying more if you don't already have some on hand. And digikey is great but shipping is $. All in all, depending on what you have hoarded way, it'll probably cost you somewhere between $15 and $35.
+전자공작을 좀 해 본 분이라면 부품을 잔뜩 쟁여두고 있을 겁니다. 이 프로젝트는 이론상 저렴합니다. 브레드보드, 저항, 다이오드 같은 흔한 부품들이 이미 있다면요. 대부분의 부품 단가는 낮지만 묶음으로만 팔기 때문에, 처음 시작하는 분이라면 결국 더 많이 쓰게 됩니다. Digikey가 좋긴 한데 배송비가... 결국 이미 가진 부품 상태에 따라 대략 15~35달러 정도가 들 겁니다.
 
-Note: I also saw you can buy an A2io. I'm sure it's better, but it was $55 and it looks like it requires using a mobile device. I didn't want to have to use a mobile app and really the fun was in building this.
+참고: A2io라는 제품도 있더군요. 분명 더 잘 만들어졌겠지만 55달러였고 모바일 기기 사용이 필요해 보였습니다. 모바일 앱을 쓰고 싶지도 않았고, 직접 만드는 재미가 있었기 때문에 이걸 만들었습니다.
 
-# Credits
+# 크레딧
 
-I learned about how the Apple II joysticks work primarily by reading my Laser 128 technical reference manual and [this article](https://blondihacks.com/apple-ii-gamepad-prototype/) by Quinn Dunki.
+Apple II 조이스틱이 어떻게 동작하는지는 주로 Laser 128 기술 참고 매뉴얼과 Quinn Dunki의 [이 글](https://blondihacks.com/apple-ii-gamepad-prototype/)을 통해 배웠습니다.
 
-For the ESP32/bluetooth side, this project uses Bluepad32. Here are some links I found helpful.
-* [Some Bluepad32 docs](https://gitlab.com/ricardoquesada/bluepad32/-/blob/main/docs/plat_arduino.md#1-add-esp32-and-bluepad32-board-packages-to-board-manager)
-* [ESP-IDF + Arduino + Bluepad32 template app](https://github.com/ricardoquesada/esp-idf-arduino-bluepad32-template)
+ESP32/블루투스 쪽은 Bluepad32를 사용합니다. 도움이 되었던 링크들입니다.
+* [Bluepad32 문서 일부](https://gitlab.com/ricardoquesada/bluepad32/-/blob/main/docs/plat_arduino.md#1-add-esp32-and-bluepad32-board-packages-to-board-manager)
+* [ESP-IDF + Arduino + Bluepad32 템플릿 앱](https://github.com/ricardoquesada/esp-idf-arduino-bluepad32-template)
 
 
-# Usage
+# 사용법
 
-## Connecting everything
+## 연결하기
 
-Plug the DE9 into your joystick port. Plug your ESP32 into USB. They are powered separately. See the section below on power rails, but generally it should be fine to do this in either order. It's probably a good idea to do this with your Apple off.
+DE9 커넥터를 조이스틱 포트에 꽂으세요. ESP32는 USB에 연결합니다. 두 장치는 따로 전원을 받습니다. 아래의 "전원 레일" 섹션을 보세요. 일반적으로는 어느 순서로 연결해도 괜찮습니다. 그래도 Apple II는 끈 상태에서 작업하는 것이 좋습니다.
 
-## Pairing controllers
+## 컨트롤러 페어링
 
-By default, bluepad32 pairing is automatic when devices are put in pairing mode. Instead, I implemented an on-device pairing mode so that you can ignore new controllers if you're trying to pair them with other devices in the area. To pair a new controller, you need to bring Pin 13 to low. You can do this with a physical switch or if you're using a breadboard just connect Pin 13 to ground.
+기본적으로 bluepad32는 페어링 모드에 들어간 기기가 있으면 자동으로 페어링합니다. 그런데 주변에서 다른 기기와 페어링하려는 컨트롤러까지 잡혀 버리면 곤란하므로, 직접 페어링 모드를 토글할 수 있도록 구현했습니다. 새 컨트롤러를 페어링하려면 핀 13(GPIO 13)을 LOW로 떨어뜨리면 됩니다. 물리적 스위치를 써도 되고, 브레드보드라면 그냥 GND에 연결해도 됩니다.
 
-If you have one controller connected, then connect another one, the second one will be the one used.
+이미 컨트롤러 하나가 연결된 상태에서 다른 컨트롤러를 연결하면, 새로 연결된 쪽이 사용됩니다.
 
-## Calibrating your controller
+## 컨트롤러 캘리브레이션
 
-You may find that center on your joystick isn't center on the Apple II. See the section on how analog sticks work and you can probably guess why. Not to mention you may have decades old capacitors in your machine.
+조이스틱의 중앙이 Apple II에서의 중앙과 맞지 않는 경우가 있습니다. 아래 아날로그 스틱 동작 원리를 보면 그 이유를 짐작할 수 있을 겁니다. 게다가 수십 년 묵은 캐패시터가 그대로 있을 수도 있고요.
 
-Pressing L1 and R1 simultaneously on your controller will capture an offset value for x and y and apply this to your joystick readings. This allows you to center the controller. If you have the TotalReplay image (google it), there's a joystick program you can use. You can move the stick until it's in the center and press L1 and R1.
+컨트롤러의 L1과 R1을 동시에 누르면 x, y의 오프셋 값을 잡아서 이후 조이스틱 입력에 반영합니다. 이걸로 컨트롤러 중앙을 보정할 수 있습니다. TotalReplay 이미지(검색해 보세요)에 들어 있는 조이스틱 프로그램을 사용하면 편합니다. 스틱을 중앙에 두고 L1+R1을 누르면 됩니다.
 
-The calibration is saved in flash memory so it will stick even when you remove power.
+캘리브레이션 값은 플래시 메모리에 저장되므로 전원을 빼도 유지됩니다.
 
-# How this stuff works if you want to build one
+# 만들고 싶다면: 동작 원리
 
-As mentioned in the warning at the top of this readme, I know just enough hardware stuff to get by. And not enough to get by in some cases. So if you're reading this and you see I'm wrong about something or did something dangerous, let me know! Especially if there's risk of damaging an Apple II! Better yet, contribute some code or modify the design if you have a better way.
+맨 위 경고에 적었듯, 저는 하드웨어 지식이 딱 어떻게든 굴러갈 정도뿐이고, 어떤 부분에서는 그것조차 부족합니다. 그러니 잘못된 점이나 위험한 부분을 발견하면 알려 주세요! 특히 Apple II를 손상시킬 위험이 있는 부분이라면 더더욱요. 더 좋게는, 더 나은 방법이 있다면 코드나 설계를 직접 기여해 주세요.
 
-## Analog sticks using digital potentiometers (used as rheostats)
+## 디지털 포텐셔미터(레오스탯으로 사용)로 만든 아날로그 스틱
 
-Traditional Apple II analog joysticks were pretty simple. Inside are two 150k ohm potentiometers, one for each axis. As you move the stick, it adjusts the potentiometers (pots) and changes the resistance in a circuit on the Apple II. The computer measures how long it takes to charge an internal capacitor through that resistance. Because the charging time varies, it can detect fine movements and exact angles. This is pretty cool compared to digital joysticks like the C64 or Ataris used, which were simple on-off switches for four directions.
+전통적인 Apple II 아날로그 조이스틱은 꽤 단순합니다. 안에 축마다 하나씩, 150k 옴 포텐셔미터 두 개가 들어 있습니다. 스틱을 움직이면 포텐셔미터(이하 "팟")가 조정되어 Apple II 내부 회로의 저항을 바꿉니다. 컴퓨터는 그 저항을 통해 내부 캐패시터를 충전하는 데 걸리는 시간을 측정합니다. 충전 시간이 달라지므로 세밀한 움직임과 정확한 각도를 감지할 수 있습니다. C64나 Atari 같은 단순한 4방향 온/오프 디지털 조이스틱에 비하면 꽤 인상적이죠.
 
-This project works by using digital potentiometers (digipots). It converts the position of the stick on your modern gamepad to resistance values for the digipots. The Apple II expects between 0 and 150kohms resistance but 150kohm resistors are hard to find. So this project uses two 100kohm digipots in series per axis.
+이 프로젝트는 디지털 포텐셔미터(이하 "디지팟")를 사용합니다. 현대식 게임패드의 스틱 위치를 디지팟의 저항 값으로 변환하는 식이죠. Apple II는 0~150kΩ 범위를 기대하지만 150kΩ 디지팟은 구하기 어렵습니다. 그래서 이 프로젝트는 축당 100kΩ 디지팟 두 개를 직렬로 사용합니다.
 
-If you want to make it cheaper, you can probably just use one 100kohm digipot per axis. You may lose some range, though. I haven't tried this, but it seems like that's what others have done when they've built physical joysticks, and the common complaint is that it may not work great for things like flight simulators.
+비용을 더 줄이려면 축당 디지팟 한 개만 써도 됩니다. 다만 범위 일부를 잃을 수 있습니다. 직접 시도해 보진 않았지만 다른 사람들이 물리 조이스틱을 만들 때 그렇게 한 사례가 있고, 흔히 들리는 불만은 비행 시뮬레이터 같은 게임에서 부족하다는 점이었습니다.
 
-The code basically sets the two MCP4161 digipots per axis to the same wiper values and wires them in series. E.g. to get 150kohms of resistance, both digipots are set to 75kohm.
+코드는 축당 두 개의 MCP4161 디지팟에 같은 와이퍼 값을 설정하고 직렬로 연결합니다. 예를 들어 150kΩ 저항을 얻으려면 두 디지팟을 각각 75kΩ로 설정합니다.
 
-Also, my oldschool joystick allowed close to a square movement pattern. My modern gamepads are pretty constrained to a circle. So the code "squares the circle" a bit to provide a more authentic response. You can control how much by tweaking the code. See the SQUARENESS value.
+또한 제 옛날 조이스틱은 거의 정사각형에 가까운 움직임 범위를 보였는데, 현대식 게임패드는 원형에 가깝게 제한됩니다. 그래서 코드는 입력을 "사각형에 맞도록" 약간 보정합니다. 보정 강도는 코드에서 조정할 수 있습니다. `SQUARENESS` 값을 참고하세요.
 
-Finally, there are some variables you can set to control how low the wipers can go. Play with those if you want. See WIPER\\_MIN\_SAFE.
+마지막으로, 와이퍼가 얼마나 낮은 값까지 내려갈 수 있는지 제한하는 변수도 있습니다. 원하면 조정해 보세요. `WIPER_MIN_SAFE`를 보세요.
 
-## Buttons
+## 버튼
 
-Apple II buttons are quite simple. We get the button state from bluepad32. When a button is not being pressed, we want the Apple II button switch input to float. When it's being pressed, we bring it to 5V through a 470 ohm resistor. We make use of a diode for this.
+Apple II 버튼은 아주 단순합니다. 버튼 상태는 bluepad32에서 가져옵니다. 버튼이 눌리지 않았을 때는 Apple II 버튼 스위치 입력을 떠 있는(floating) 상태로 둬야 하고, 눌렸을 때는 470Ω 저항을 통해 5V로 끌어올립니다. 이를 위해 다이오드를 사용합니다.
 
-## Power rails
+## 전원 레일
 
-This project interfaces an ESP32 (3.3V logic) with an Apple II (5V logic). Because these devices operate at different voltages, some care was taken to ensure signal integrity and hardware safety. Again, I'm not an expert so please point out any flaws in the design.
+이 프로젝트는 ESP32(3.3V 로직)와 Apple II(5V 로직)를 인터페이스합니다. 두 장치가 서로 다른 전압으로 동작하므로 신호 무결성과 하드웨어 안전을 위해 신경을 좀 썼습니다. 다시 한번 말씀드리지만 저는 전문가가 아니니, 설계상 결함이 보이면 알려 주세요.
 
-## Level shifting, isolation, and fail-safe
+## 레벨 시프팅, 격리, 페일세이프
 
-All 3.3V SPI and control signals from the ESP32 are level-shifted through a 74HCT245 bus transceiver.
-* The 74HCT245 is powered by the 5V rail from the Apple II Game I/O port.
-* Note: The "T" variant (HCT) is used because its input threshold is compatible with 3.3V logic but it can output 5V for the Apple II and digipots.
+ESP32에서 나오는 모든 3.3V SPI 및 제어 신호는 74HCT245 버스 트랜시버를 통해 레벨 시프팅됩니다.
+* 74HCT245는 Apple II 게임 I/O 포트의 5V 레일로 전원을 공급받습니다.
+* 참고: "T" 버전(HCT)을 사용하는 이유는 입력 임계값이 3.3V 로직과 호환되면서 Apple II와 디지팟을 위해 5V를 출력할 수 있기 때문입니다.
 
-To prevent backfeeding power or sending spurious SPI commands to the digipots when one system is off, the 74HCT245's OE pin is managed by a hardware failsafe.
-* A 10K pullup resistor connects the OE pin to the Apple II 5V rail. So if the ESP32 is not connected or is powered down, OE is HIGH and the buffer is in a high impedance state.
-* A 2N7000 MOSFET acts as an inverter. When the ESP32 GPIO pins initialize and drive the MOSFET Gate HIGH, the MOSFET pulls the OE pin to ground, enabling the outputs.
+한쪽 시스템이 꺼져 있을 때 전원이 역류하거나 디지팟으로 잘못된 SPI 명령이 가는 것을 막기 위해, 74HCT245의 OE 핀은 하드웨어 페일세이프로 관리합니다.
+* 10kΩ 풀업 저항이 OE 핀을 Apple II 5V 레일에 연결합니다. 따라서 ESP32가 연결되지 않았거나 전원이 꺼져 있으면 OE가 HIGH가 되어 버퍼는 하이 임피던스 상태가 됩니다.
+* 2N7000 MOSFET이 인버터 역할을 합니다. ESP32 GPIO가 초기화되며 MOSFET 게이트를 HIGH로 구동하면, MOSFET이 OE 핀을 GND로 끌어내려 출력이 활성화됩니다.
 
-Note: The 2N7000 has a gate threshold that can range up to 3.0V. Since the ESP32 outputs 3.3V, there isn't much overhead for the transistor to turn fully on. This should still be sufficient for switching the OE pin, but your mileage may vary. To test, check the voltage at the OE pin. It should drop reasonably close to 0V when the ESP32 is active. A logic-level MOSFET with a lower gate threshold is probably better, but I had a ton of these on hand and it's working for me.
+참고: 2N7000은 게이트 임계 전압이 최대 3.0V까지 올라갈 수 있습니다. ESP32 출력이 3.3V이므로 트랜지스터를 완전히 켜기에는 마진이 크지 않습니다. OE 핀을 스위칭하기에는 보통 충분하지만, 결과가 다를 수 있습니다. 테스트하려면 OE 핀의 전압을 확인하세요. ESP32가 활성 상태일 때 0V에 가깝게 떨어져야 합니다. 게이트 임계 전압이 더 낮은 로직 레벨 MOSFET이 더 낫겠지만, 저는 2N7000을 잔뜩 갖고 있었고 제 환경에서는 잘 작동했습니다.
 
-## Parts list
+## 부품 목록
 
-Here's what I used in building this device. It would probably be cheaper to make a PCB since a lot of the expense is breadboards/breakout boards, etc. Most of what I bought came in packs of a bunch, so it could be more expensive if you don't already have stuff on hand like resistors, diodes, etc.
-* 1 - [ESP32](https://www.amazon.com/dp/B0D8T53CQ5?ref=ppx_yo2ov_dt_b_fed_asin_title) - $6.67 each. Make sure you get one that supports classic bluetooth mode. Look at bluepad32's docs above to make sure.
-* 1 - [ESP32 breakout board](https://www.amazon.com/dp/B0BNQ85GF3?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1) - $4.33 each. Not strictly necessary but made it a lot easier to mess around.
-* 4 - [MCP4161-104E/P digipots](https://www.digikey.com/en/products/detail/microchip-technology/MCP4161-104E-P/1874169) - $1.38 each
-* 1- [DB9 breakout board] (https://www.amazon.com/dp/B09L7JWNDQ?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1) - $7.96. You can do this with a simple male connector if you want to save money. I just found it a lot easier to wire up this way.
-* About 10 [104 capacitors] - about $0.70 total.
-* 1- [74HCT245N](https://www.digikey.com/en/products/detail/texas-instruments/SN74HCT245N/277258) - $0.92 each.
-* 2 - 1N5817 diodes
-* 1 - [2N7000 MOSFET](https://www.amazon.com/dp/B0CBKHJQZF?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1) - $0.08 each. 
-* Resistors. Just get a kit if you don't already have any. You'll need 6x1kohm resistors, a couple of 10K resistors, a couple of 470ohm resistors.
-* Wire and terminals depending on how you want to build it.
-* Breadboard or a solderable board of some kind.. Get whatever you want. A good one's about $8.
+이 장치를 만들면서 사용한 부품들입니다. 비용 대부분이 브레드보드/브레이크아웃 보드 등에 들어가므로 PCB로 만들면 더 싸질 가능성이 큽니다. 대부분의 부품이 묶음 단위로 팔리기 때문에, 저항/다이오드 같은 부품을 이미 가지고 있지 않다면 더 많이 들 수 있습니다.
+* 1 - [ESP32](https://www.amazon.com/dp/B0D8T53CQ5?ref=ppx_yo2ov_dt_b_fed_asin_title) - 개당 $6.67. Classic Bluetooth 모드를 지원하는 모델로 골라야 합니다. 위의 Bluepad32 문서를 확인하세요.
+* 1 - [ESP32 브레이크아웃 보드](https://www.amazon.com/dp/B0BNQ85GF3?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1) - 개당 $4.33. 필수는 아니지만 작업이 훨씬 편해집니다.
+* 4 - [MCP4161-104E/P 디지팟](https://www.digikey.com/en/products/detail/microchip-technology/MCP4161-104E-P/1874169) - 개당 $1.38
+* 1 - [DB9 브레이크아웃 보드](https://www.amazon.com/dp/B09L7JWNDQ?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1) - $7.96. 비용을 줄이고 싶다면 단순 수커넥터로도 가능합니다. 저는 배선이 훨씬 편해서 이 보드를 썼습니다.
+* 약 10개의 104 캐패시터 - 전체 약 $0.70.
+* 1 - [74HCT245N](https://www.digikey.com/en/products/detail/texas-instruments/SN74HCT245N/277258) - 개당 $0.92.
+* 2 - 1N5817 다이오드
+* 1 - [2N7000 MOSFET](https://www.amazon.com/dp/B0CBKHJQZF?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1) - 개당 $0.08.
+* 저항. 가지고 있지 않다면 키트로 사세요. 1kΩ 6개, 10kΩ 몇 개, 470Ω 몇 개가 필요합니다.
+* 어떻게 만들지에 따라 전선과 단자.
+* 브레드보드나 납땜 가능한 보드. 원하는 것으로. 좋은 것은 약 $8.
 
-## Layout
+## 레이아웃
 
-Check out the [schematic](./schematic/schematic.kicad_sch) built using [KiCad](https://www.kicad.org/). 
+[KiCad](https://www.kicad.org/)로 만든 [회로도](./schematic/schematic.kicad_sch)를 참고하세요.
 
-Notes:
-* My ESP32 had different pin numbers than the drawing shows, so just make sure the right GPIO/IO lines are used rather than paying attention to the pin numbers listed.
-* I also sprinkled some 0.1 µF ceramic capacitors (104s) along the power rails (VCC to GND). These aren't shown in the drawing.
-* The Apple II calls for 470ohm resistors on the buttons. On my Laser 128, that kept me borderline on button presses. I DON'T RECOMMEND IT BECAUSE THE SPEC CALLS FOR 470 ohms and I'm paranoid. But if the buttons aren't triggering you could try a lower value resistor. Do this at your own risk.
+주의사항:
+* 제 ESP32는 그림에 표시된 핀 번호와 다른 핀 번호를 사용했습니다. 그러니 표시된 핀 번호보다는 GPIO/IO 라인이 맞는지 확인하세요.
+* 그림에는 없지만 전원 레일(VCC-GND 사이)에 0.1µF 세라믹 캐패시터(104)를 군데군데 넣었습니다.
+* Apple II는 버튼에 470Ω 저항을 요구합니다. 제 Laser 128에서는 이 값으로 버튼 인식이 살짝 경계선이었습니다. 사양이 470Ω을 요구하고 저는 겁이 많아서 권장하진 않습니다. 그래도 버튼이 잘 안 눌린다면 더 작은 저항으로 시도해 볼 수 있습니다. 본인 책임으로요.
 
-# Next steps / Possible problems
+# 다음 단계 / 가능한 문제
 
-It might be good to add some physical pots for the stick calibration. Some adjustments for min/max resistance and for centering. We could get much more precise calibrations that way and you wouldn't need to use a calibration program. You could also do it mid-game.
+스틱 캘리브레이션용 물리 포텐셔미터를 추가하면 좋을 것 같습니다. 최소/최대 저항과 중앙 위치를 조정할 수 있는 거요. 그러면 훨씬 정밀한 캘리브레이션이 가능하고, 캘리브레이션 프로그램이 필요 없어집니다. 게임 도중에도 조정할 수 있고요.
 
-I noticed that when you have the stick all the way down and to the left, sometimes there's an overflow and the stick will jump to the top in the joystick calibration program. This also happens with my old school physical joystick so maybe it's just a practical hardware limitation.
+스틱을 왼쪽 아래 끝까지 내리면 가끔 오버플로우가 일어나서 조이스틱 캘리브레이션 프로그램상에서 스틱이 위로 튀어 오르는 현상을 발견했습니다. 옛날 물리 조이스틱에서도 같은 현상이 나타나니, 실제 하드웨어 한계일지도 모릅니다.
 
-I've never designed a PCB before, but I think this would be pretty cheap if someone wanted to give it a go. I'd go in on it with you if you want to build a bunch. I used through hole components since I suck at soldering and am scared to try doing SMDs.
+저는 PCB를 설계해 본 적이 없는데, 누군가가 만든다면 꽤 저렴할 것 같습니다. 같이 만들 사람이 있다면 합류할 수 있어요. 저는 납땜 실력이 별로고 SMD는 무서워서 스루홀 부품을 사용했습니다.

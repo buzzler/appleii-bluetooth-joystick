@@ -289,7 +289,6 @@ void setup() {
 
     // Setup the Bluepad32 callbacks
     BP32.setup(&onConnectedController, &onDisconnectedController);
-    BP32.forgetBluetoothKeys();
 
     Serial.println(F("Pairing enabled: false"));
     BP32.enableNewBluetoothConnections(false);
